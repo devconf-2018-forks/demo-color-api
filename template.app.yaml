@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: demo-color-api
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: demo-color-api
+    name: demo-color-api-${COLOR}
+  spec:
+    replicas: 2
+    selector:
+      app: demo-color-api
+      deploymentconfig: demo-color-api-${COLOR}
+    strategy:
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          app: demo-color-api
+          deploymentconfig: demo-color-api-${COLOR}
+      spec:
+        containers:
+        - imagePullPolicy: Always
+          name: demo-color-api-${COLOR}
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          env:
+          - name: BACKEND_URI
+            valueFrom:
+              configMapKeyRef:
+                  name: demo-color-api
+                  key: backend.uri
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - demo-color-api-${COLOR}
+        from:
+          kind: ImageStreamTag
+          name: demo-color-api:${COLOR}
+          namespace: vpavlin
+      type: ImageChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: demo-color-api
+    name: demo-color-api-${COLOR}
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: demo-color-api
+      deploymentconfig: demo-color-api-${COLOR}
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: demo-color-api-${COLOR}
+  spec:
+    port:
+      targetPort: 8080-tcp
+    to:
+      kind: Service
+      name: demo-color-api-${COLOR}
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: demo-color-api
+  spec:
+    port:
+      targetPort: 8080-tcp
+    to:
+      kind: Service
+      name: demo-color-api-${COLOR}
+      weight: 100
+    wildcardPolicy: None
+parameters:
+- name: COLOR
+  value: blue
