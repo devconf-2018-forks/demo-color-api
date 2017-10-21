@@ -24,6 +24,20 @@ oc process -f template.app.yaml COLOR=green | oc apply -f -
 
 These will also deploy a *master route* which will allow us switch between deployments
 
+We also need to configure our application. There is a URL expected in `configmap.yaml` file. The value should match the master route host value from https://github.com/prgcont/demo-color-backend. The value needs to be in a form
+
+```
+http://$HOST:$PORT
+```
+
+You can obviously omit `$PORT` if it equals to `80`
+
+After you update the value there, you'll need to upload the config to OpenShift
+
+```
+oc apply -f configmap.yaml
+```
+
 Last what we need to deploy is our pipeline (+actual image build config and image stream)
 
 ```
