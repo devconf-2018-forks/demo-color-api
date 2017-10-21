@@ -7,9 +7,9 @@ app = Flask(__name__)
 
 @app.route('/api/v1/colors')
 def colors():
-    backend_uri = "http://%s:8080" % os.environ["BACKEND_URI"]
+    backend_uri = os.environ["BACKEND_URI"]
     host = os.environ["HOSTNAME"]
-    resp = requests.get("%s/api/v1/color" % backend_uri)
+    resp = requests.get("%s/api/v1/color" % backend_uri.rstrip("/"))
     data = resp.json()
 
     color = "#000000"
