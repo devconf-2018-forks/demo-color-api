@@ -57,7 +57,6 @@ objects:
         from:
           kind: ImageStreamTag
           name: demo-color-api:${COLOR}
-          namespace: vpavlin
       type: ImageChange
 - apiVersion: v1
   kind: Service
